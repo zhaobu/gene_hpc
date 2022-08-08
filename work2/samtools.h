@@ -5,11 +5,12 @@
 #include <fstream>
 #include <iostream>
 #include <iterator>
-#include <map>
+// #include <map>
 // #include <memory>
 #include <sstream>
 #include <string>
 #include <thread>
+#include <unordered_map>
 #include <unordered_set>
 #include <utils.h>
 #include <vector>
@@ -27,7 +28,7 @@ enum FLAG
 
 const int KCH_TOTAL_NUM = 94; //染色体总条数
 
-using DepthInfo = map<string, vector<int>>;
+using DepthInfo = unordered_map<string, vector<int>>;
 // using VecWorker = vector<std::shared_ptr<Worker>>;
 using VecThread = vector<std::thread>;
 

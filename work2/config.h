@@ -9,9 +9,9 @@ class Configer
 {
 private:
     /* data */
-    string m_sam_file = "work2.sam";
+    string m_sam_file = "data/work2.sam";
     int m_thread = 10;
-    string m_result_file = "result.log";
+    string m_result_file = "data/result.log";
 
 public:
     Configer(/* args */);
