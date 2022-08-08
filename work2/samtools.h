@@ -13,10 +13,12 @@
 #include <thread>
 #include <unordered_map>
 #include <unordered_set>
+#include <utility>
 #include <utils.h>
 #include <vector>
 // #include <worker.h>
 #include <mutex>
+
 using namespace std;
 
 enum FLAG
@@ -35,37 +37,97 @@ using DepthInfoLock = unordered_map<string, shared_ptr<mutex>>;
 using VecThread = vector<std::thread>;
 
 //比对信息
-class AlignmenSsection
+class AlignmenSection
 {
 private:
-    unsigned int m_flag; // FLAG
-    string m_qname;      // qname
-    string m_rname;      // 染色体名称
-    unsigned int m_pos;  // 位点
-    string m_cigar;      // cigar值
+    unsigned int m_flag;
 
 public:
-    AlignmenSsection(/* args */);
-    AlignmenSsection(string qname, unsigned int flag, string rname, unsigned int pos, string cigar);
-    ~AlignmenSsection();
+    unsigned int getMFlag() const
+    {
+        return m_flag;
+    }
+
+    void setMFlag(unsigned int mFlag)
+    {
+        m_flag = mFlag;
+    }
+
+    const string &getMQname() const
+    {
+        return m_qname;
+    }
+
+    void setMQname(const string &mQname)
+    {
+        m_qname = mQname;
+    }
+
+    const string &getMRname() const
+    {
+        return m_rname;
+    }
+
+    void setMRname(const string &mRname)
+    {
+        m_rname = mRname;
+    }
+
+    unsigned int getMPos() const
+    {
+        return m_pos;
+    }
+
+    void setMPos(unsigned int mPos)
+    {
+        m_pos = mPos;
+    }
+
+    const string &getMCigar() const
+    {
+        return m_cigar;
+    }
+
+    void setMCigar(const string &mCigar)
+    {
+        m_cigar = mCigar;
+    }
+
+private:
+    // FLAG
+    string m_qname;     // qname
+    string m_rname;     // 染色体名称
+    unsigned int m_pos; // 位点
+    string m_cigar;     // cigar值
+
+public:
+    AlignmenSection(/* args */);
+
+    AlignmenSection(string qname, unsigned int flag, string rname, unsigned int pos, string cigar);
+
+    ~AlignmenSection();
 };
 
-AlignmenSsection::AlignmenSsection(/* args */)
+AlignmenSection::AlignmenSection(/* args */)
 {
 }
 
-AlignmenSsection::~AlignmenSsection()
+AlignmenSection::~AlignmenSection()
 {
 }
 
-AlignmenSsection::AlignmenSsection(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
+AlignmenSection::AlignmenSection(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
 {
-    m_qname = qname;
+    m_qname = std::move(qname);
     m_flag = flag;
-    m_rname = rname;
+    m_rname = std::move(rname);
     m_pos = pos;
-    m_cigar = cigar;
+    m_cigar = std::move(cigar);
 }
+
+class Tools
+{
+};
 
 class Samtools
 {
@@ -80,8 +142,11 @@ private:
 
 public:
     Samtools();
+
     Samtools(Configer &conf);
+
     ~Samtools();
+
     //开始计算
     int start_work();
 
@@ -100,6 +165,7 @@ public:
 Samtools::Samtools(/* args */)
 {
 }
+
 Samtools::Samtools(Configer &conf) : m_conf(conf)
 {
     m_filter_read.reserve(conf.get_thread());
