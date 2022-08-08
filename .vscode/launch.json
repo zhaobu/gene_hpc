@@ -20,8 +20,9 @@
             "program": "${fileDirname}/main.out",
             /*args: 命令行参数（main函数的形参） */
             "args": [
-                "/data/lush-dev/liwei/homework1/2.sam",
-                "210"
+                "conf.yml"
+                // "/data/lush-dev/liwei/homework1/2.sam",
+                // "210"
             ],
             //stopAtEntry: 为true时，在开始运行程序时，不立刻往后执行，先暂停一下，一般填false；
             "stopAtEntry": false,

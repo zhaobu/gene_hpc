@@ -2,7 +2,6 @@
 #ifndef UTILS
 #define UTILS
 
-#include <iostream>
 #include <iterator>
 #include <regex>
 #include <sstream>

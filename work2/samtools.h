@@ -1,6 +1,7 @@
 #ifndef SAMTOOLS
 #define SAMTOOLS
 
+#include "spdlog/spdlog.h"
 #include <config.h>
 #include <fstream>
 #include <iostream>
@@ -116,7 +117,7 @@ int Samtools::read_header(int &start_pos, int &file_size)
     ifstream inFile(m_conf.get_sam_file());
     if (!inFile)
     {
-        cout << "打开文件失败" << endl;
+        spdlog::error("打开文件失败");
         return 0;
     }
     //把指针指到文件末尾求出文件大小
@@ -148,17 +149,15 @@ int Samtools::read_header(int &start_pos, int &file_size)
     };
 
     inFile.close();
-    cout << "头文件信息读取成功，共有" << m_depth_result.size() << "条染色体" << endl;
-    cout << "头文件信息读取成功，文件大小为" << file_size << endl;
+    spdlog::info("头文件信息读取成功，共有{}条染色体，文件大小为{}", m_depth_result.size(), file_size);
     return 0;
 }
 
 //读取文件数据
 int Samtools::read_data(int start_pos, int next_pos, int tid)
 {
+    spdlog::info("第{}号线程开始读取，start_pos={}，next_pos={}", tid, start_pos, next_pos);
 
-    cout << "第" << tid << "号线程开始从" << start_pos << "位置开始读取"
-         << "next_pos=" << next_pos << endl;
     ifstream inFile(m_conf.get_sam_file());
     inFile.seekg(start_pos, ios::beg);
 
@@ -214,7 +213,7 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
         // }
         cal_line(qname, flag, rname, pos, cigar);
     }
-    cout << "第" << tid << "号线程读取完毕" << endl;
+    spdlog::info("第{}号线程读取完毕start_pos={}，next_pos={}, tellg={}", tid, start_pos, next_pos, inFile.tellg());
     return 0;
 }
 
@@ -267,8 +266,7 @@ int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned i
 
 int Samtools::start_work()
 {
-
-    cout << "开始统计每条染色体每个位点深度：" << endl;
+    spdlog::info("开始统计每条染色体每个位点深度");
     int start_pos = 0;
     int file_size = 0;
     read_header(start_pos, file_size);
@@ -309,14 +307,14 @@ int Samtools::start_work()
 
 int Samtools::static_result()
 {
-    cout << "开始写入结果到" + m_conf.get_result_file() << endl;
+    spdlog::info("开始写入结果到{}", m_conf.get_result_file());
 
     // 统计结果写入文件
     ofstream out(m_conf.get_result_file(), ios::out);
     if (!out)
     {
         out.close(); //程序结束前不能忘记关闭以前打开过的文件
-        cout << "error opening destination file." << m_conf.get_result_file() << endl;
+        spdlog::info("打开文件{}失败", m_conf.get_result_file());
         return 0;
     }
 
@@ -330,8 +328,7 @@ int Samtools::static_result()
             out << rname << "\t" << pos << "\t" << depth_info[pos] << endl;
         }
     }
-
-    cout << "结果已经保存到" + m_conf.get_result_file() << endl;
+    spdlog::info("结果已经保存到{}", m_conf.get_result_file());
     out.close();
     return 0;
 }

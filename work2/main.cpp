@@ -1,3 +1,4 @@
+#include "spdlog/spdlog.h"
 #include <config.h>
 #include <samtools.h>
 #include <string>
@@ -19,7 +20,7 @@ int main(int argc, char *argv[])
 
     string conf_file = argv[1];
 
-    cout << "配置文件的路径" << conf_file << endl;
+    spdlog::info("配置文件的路径{}", conf_file);
 
     Configer conf(conf_file);
     Samtools samtools(conf);
