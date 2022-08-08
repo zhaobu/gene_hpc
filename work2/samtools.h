@@ -29,6 +29,7 @@ enum FLAG
 const int KCH_TOTAL_NUM = 94; //染色体总条数
 
 using DepthInfo = unordered_map<string, vector<int>>;
+using DepthInfoLock = unordered_map<string, shared_ptr<mutex>>;
 // using VecWorker = vector<std::shared_ptr<Worker>>;
 using VecThread = vector<std::thread>;
 
@@ -74,7 +75,7 @@ private:
     DepthInfo m_depth_result;
     VecThread m_threads;
     unordered_set<string> m_filter_read; //过滤多线程时重复读取的的行
-    mutex m_depth_result_lock;           //同步锁
+    DepthInfoLock m_depth_result_locks;  //同步锁
 
 public:
     Samtools();
@@ -142,8 +143,10 @@ int Samtools::read_header(int &start_pos, int &file_size)
             auto sn = cols[1].substr(3);       //得到SN字段
             auto ln = stoi(cols[2].substr(3)); //得到LN字段
             m_depth_result[sn] = vector<int>(ln);
+            m_depth_result_locks[sn] = make_shared<mutex>();
         }
     };
+
     inFile.close();
     cout << "头文件信息读取成功，共有" << m_depth_result.size() << "条染色体" << endl;
     cout << "头文件信息读取成功，文件大小为" << file_size << endl;
@@ -180,7 +183,9 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
 
         auto cols = split(line);
 
-        unsigned int flag = std::stoi(cols[1]); // flag值
+        unsigned int flag = std::stoi(cols[1]);
+
+        // flag值
         // FLAG_BAM_FUNMAP = 1 << 2,
         // FLAG_AM_FSECONDARY = 1 << 8,
         // FLAG_BAM_FQCFAIL = 1 << 9,
@@ -197,16 +202,16 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
         unsigned int pos = std::stoi(cols[3]); // 位点
         string cigar = cols[5];                // cigar值
 
-        string filter_key = qname + cols[3];
-        if (m_filter_read.count(filter_key) > 0)
-        {
-            continue;
-        }
-        if (record_filter)
-        {
-            m_filter_read.insert(filter_key);
-            record_filter = false;
-        }
+        // string filter_key = qname + cols[3];
+        // if (m_filter_read.count(filter_key) > 0)
+        // {
+        //     continue;
+        // }
+        // if (record_filter)
+        // {
+        //     m_filter_read.insert(filter_key);
+        //     record_filter = false;
+        // }
         cal_line(qname, flag, rname, pos, cigar);
     }
     cout << "第" << tid << "号线程读取完毕" << endl;
@@ -215,7 +220,7 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
 
 int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
 {
-
+    auto &cur_lock = m_depth_result_locks[rname];
     // 根据cigar值来统计深度
     for (auto start = 0, i = 0; i < cigar.size(); i++)
     {
@@ -228,15 +233,31 @@ int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned i
         auto t = stoi(cigar.substr(start, i - start));
 
         // 3M1D2M1I1M
-        // M 表示比对匹配,进行统计
-        if (cigar[i] == 'M')
+        switch (cigar[i])
         {
-            while (t--)
-            {
-                m_depth_result_lock.lock();
-                m_depth_result[rname][pos++]++;
-                m_depth_result_lock.unlock();
-            }
+        // case 'M': // M 表示比对匹配,进行统计
+        //     while (t--)
+        //     {
+        //         cur_lock->lock();
+        //         m_depth_result[rname][pos++]++;
+        //         cur_lock->unlock();
+        //     }
+        //     break;
+        // case 'I':
+        //     while (t--)
+        //     {
+        //         cur_lock->lock();
+        //         m_depth_result[rname][pos++]++;
+        //         cur_lock->unlock();
+        //     }
+        //     break;
+        case 'D':
+            pos += t;
+        default:
+            cur_lock->lock();
+            m_depth_result[rname][pos++]++;
+            cur_lock->unlock();
+            break;
         }
 
         //读取下一个数字

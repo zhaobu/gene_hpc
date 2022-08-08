@@ -17,11 +17,11 @@
             program:可执行程序位置，这里可以根据自己的tasks.json生成
             程序的位置自定义修改，等会参照后面的tasks.json内容
             */
-            "program": "${fileDirname}/${fileBasenameNoExtension}.out",
+            "program": "${fileDirname}/main.out",
             /*args: 命令行参数（main函数的形参） */
             "args": [
-                "tmp.sam"
-                "1",
+                "/data/lush-dev/liwei/homework1/2.sam",
+                "210"
             ],
             //stopAtEntry: 为true时，在开始运行程序时，不立刻往后执行，先暂停一下，一般填false；
             "stopAtEntry": false,
