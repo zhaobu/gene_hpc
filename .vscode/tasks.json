@@ -1,0 +1,32 @@
+{
+    "tasks": [
+        {
+            "type": "cppbuild",
+            "label": "g++ build active file", //label：需要与launch.json中的preLaunchTask保持一致，否则调试时会提示找不到；
+            "command": "/usr/bin/g++", //编译器所在的位置
+            "args": [
+                "-fdiagnostics-color=always",
+                "-I",
+                "${fileDirname}",
+                "-g",
+                "-pthread",
+                "-xc++",
+                "${fileDirname}/*.cpp",
+                "-o",
+                "${fileDirname}/${fileBasenameNoExtension}.out"
+            ], //编译参数
+            "options": {
+                "cwd": "${fileDirname}"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "detail": "调试器生成的任务。"
+        }
+    ],
+    "version": "2.0.0"
+}

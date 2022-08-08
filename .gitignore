@@ -1,0 +1,50 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+*.tlog
+*.log
+*.exp
+*.ink
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+*.vs
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+*.pdb
+*.db
+*.ipch
+*.idb
+*.ilk
+*.aps
+*.iobj
+*.ipdb
+
+# Executables
+*.exe
+*.out
+*.app
+
+.vs
+# .vscode
+*.out
+Debug
+helloworld/main
