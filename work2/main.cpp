@@ -4,7 +4,7 @@
 #include <string>
 using namespace std;
 
-bool check_args(int arg_num, string text)
+bool check_args(int arg_num, const string& text)
 {
     return true;
 }
