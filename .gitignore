@@ -47,4 +47,5 @@
 # .vscode
 *.out
 Debug
-helloworld/main
+build
+libs/libs

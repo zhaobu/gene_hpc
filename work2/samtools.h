@@ -230,8 +230,7 @@ int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned i
         }
 
         // substr截取范围为[starg,end)
-        auto t = stoi(cigar.substr(start, i - start));
-
+        unsigned int t = stoi(cigar.substr(start, i - start));
         // 3M1D2M1I1M
         switch (cigar[i])
         {

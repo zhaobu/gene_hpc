@@ -8,6 +8,8 @@
                 "-fdiagnostics-color=always",
                 "-I",
                 "${fileDirname}",
+                "-I",
+                "${workspaceFolder}/libs/include",
                 "-g",
                 "-pthread",
                 "-xc++",

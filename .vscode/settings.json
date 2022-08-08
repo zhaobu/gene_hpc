@@ -63,6 +63,9 @@
         "iomanip": "cpp",
         "mutex": "cpp",
         "cinttypes": "cpp",
-        "variant": "cpp"
+        "variant": "cpp",
+        "any": "cpp",
+        "charconv": "cpp",
+        "forward_list": "cpp"
     }
 }

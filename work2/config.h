@@ -1,8 +1,9 @@
 #ifndef CONFIG
 #define CONFIG
-
+#include "yaml-cpp/yaml.h"
+#include <fstream>
+#include <iostream>
 #include <string>
-
 using namespace std;
 
 class Configer
@@ -15,7 +16,7 @@ private:
 
 public:
     Configer(/* args */);
-    Configer(string sam_file, int thread);
+    Configer(const string &conf_file);
     ~Configer();
 
     string get_sam_file()
@@ -39,6 +40,33 @@ Configer::~Configer()
 {
 }
 
-Configer::Configer(string sam_file, int thread) : m_sam_file(sam_file), m_thread(thread){};
+Configer::Configer(const string &conf_file)
+{
+    YAML::Node config = YAML::LoadFile(conf_file);
+    std::cout << "config:" << config.as<std::string>() << endl;
+    if (!config["sam_file"])
+    {
+        std::cout << "sam_file未配置" << endl;
+        return;
+    }
+
+    if (!config["thread"])
+    {
+        std::cout << "thread 未配置" << endl;
+        return;
+    }
+
+    if (!config["result_file"])
+    {
+        std::cout << "result_file 未配置" << endl;
+        return;
+    }
+    m_sam_file = config["sam_file"].as<string>();
+    m_thread = config["thread"].as<int>();
+    m_result_file = config["result_file"].as<string>();
+
+    std::ofstream fout("config.yaml");
+    fout << config;
+};
 
 #endif
