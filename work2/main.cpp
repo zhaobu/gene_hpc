@@ -9,6 +9,7 @@ bool check_args(int arg_num, const string &text)
 {
     return true;
 }
+
 void init_log()
 {
     try
@@ -22,10 +23,11 @@ void init_log()
         std::cout << "Log init failed: " << ex.what() << std::endl;
     }
 }
+
 int main(int argc, char *argv[])
 {
 
-    init_log();
+    // init_log();
     if (argc != 2)
     {
         cout << "请输入配置文件的路径" << endl;

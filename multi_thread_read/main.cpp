@@ -84,7 +84,7 @@ void test_join(const string &file_path)
     int file_size = file.seekg(0, ios::end).tellg();
     file.close();
 
-    int thread_nums = 210;                    //线程个数
+    int thread_nums = 40;                    //线程个数
     int each_size = file_size / thread_nums; //平均每个线程读取的字节数
     assert(each_size > 0);
     std::streampos start_pos = 0;    //每个线程读取的起始位置
@@ -114,6 +114,8 @@ int main()
 {
     init_log();
     string file_path = "/data/lush-dev/liwei/homework1/2.sam";
+    file_path = "1.txt";
+    file_path = "work2.sam";
     // test_detach(file_path);
     // std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for detached threads done
     test_join(file_path);

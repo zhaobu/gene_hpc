@@ -206,6 +206,10 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
         {
             auto sn = cols[1].substr(3);       //得到SN字段
             auto ln = stoi(cols[2].substr(3)); //得到LN字段
+            if (sn != m_conf.get_target_rname())
+            {
+                continue;
+            }
             m_depth_result[sn] = vector<int>(ln);
             m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
         }
@@ -250,6 +254,10 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
     while (read_count <= read_size && !inFile.eof())
     {
         getline(inFile, line);
+        if (line.empty())
+        {
+            continue;
+        }
         unsigned long cur_line_len = inFile.tellg() - cur_pos; //当前行读的长度
         read_count += cur_line_len;                            //累计读取长度
         cur_pos = inFile.tellg();                              //记录当前读取到的位置
@@ -274,7 +282,7 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         string rname = cols[2];                // 染色体名称
         unsigned int pos = std::stoi(cols[3]); // 位点
         string cigar = cols[5];                // cigar值
-        if (rname != "chrM")
+        if (rname != m_conf.get_target_rname())
         {
             continue;
         }
@@ -395,7 +403,7 @@ int Samtools::static_result()
         auto rname = info.first;       //染色体
         auto depth_info = info.second; //深度
         auto count = depth_info.size();
-        if (rname != "chrM")
+        if (rname != m_conf.get_target_rname())
         {
             continue;
         }

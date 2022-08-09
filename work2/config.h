@@ -16,13 +16,19 @@ private:
     int m_thread = 210;
     // string m_sam_file = "/data/lush-dev/liwei/homework1/2.sam";
     string m_result_file = "data/result.log";
+    string m_target_rname = "chr22"; //要统计的染色体
 
 public:
     Configer(/* args */);
     Configer(const string &conf_file);
     ~Configer();
 
-    string get_sam_file()
+    const string &get_target_rname()
+    {
+        return m_target_rname;
+    };
+
+    const string &get_sam_file()
     {
         return m_sam_file;
     };
@@ -30,7 +36,7 @@ public:
     {
         return m_thread;
     };
-    string get_result_file()
+    const string &get_result_file()
     {
         return m_result_file;
     };
