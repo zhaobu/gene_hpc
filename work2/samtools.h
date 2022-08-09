@@ -263,7 +263,6 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         cur_pos = inFile.tellg();                              //记录当前读取到的位置
 
         auto cols = split(line);
-        spdlog::info("cols[1]={}", cols[1]);
         int flag = std::stoi(cols[1]);
 
         // flag值

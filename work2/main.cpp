@@ -27,7 +27,7 @@ void init_log()
 int main(int argc, char *argv[])
 {
 
-    // init_log();
+    init_log();
     if (argc != 2)
     {
         cout << "请输入配置文件的路径" << endl;

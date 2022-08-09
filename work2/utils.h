@@ -15,7 +15,7 @@ vector<string> split(string text)
 {
     regex ws_re("\\s+"); // 这个可以把所有空格都挖掉      而如果是regex ws_re("");就只能删掉第一个空格
     //测试一下这个字符串就明白区别了  "Quick brown    fox."
-    return vector<string>(sregex_token_iterator(text.begin(), text.end(), ws_re, -1), sregex_token_iterator());
+    return std::move(vector<string>(sregex_token_iterator(text.begin(), text.end(), ws_re, -1), sregex_token_iterator()));
 }
 
 #endif
