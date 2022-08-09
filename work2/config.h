@@ -9,9 +9,12 @@ using namespace std;
 class Configer
 {
 private:
-    /* data */
+    // int m_thread = 40;
     string m_sam_file = "data/work2.sam";
-    int m_thread = 5;
+    // string m_result_file = "data/result.log";
+
+    int m_thread = 210;
+    // string m_sam_file = "/data/lush-dev/liwei/homework1/2.sam";
     string m_result_file = "data/result.log";
 
 public:

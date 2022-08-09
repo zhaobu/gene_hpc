@@ -12,7 +12,6 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <utils.h>
 #include <vector>
@@ -32,7 +31,7 @@ enum FLAG
 const int KCH_TOTAL_NUM = 94; //染色体总条数
 
 using DepthInfo = unordered_map<string, vector<int>>;
-using DepthInfoLock = unordered_map<string, shared_ptr<mutex>>;
+using DepthInfoLock = unordered_map<string, vector<shared_ptr<mutex>>>;
 // using VecWorker = vector<std::shared_ptr<Worker>>;
 using VecThread = vector<std::thread>;
 
@@ -137,8 +136,7 @@ private:
     // VecWorker m_vec_worker;
     DepthInfo m_depth_result;
     VecThread m_threads;
-    unordered_set<string> m_filter_read; //过滤多线程时重复读取的的行
-    DepthInfoLock m_depth_result_locks;  //同步锁
+    DepthInfoLock m_depth_result_locks; //同步锁
 
 public:
     Samtools();
@@ -151,10 +149,10 @@ public:
     int start_work();
 
     //读取头
-    int read_header(int &start_pos, int &file_size);
+    int read_header(std::streampos &start_pos, unsigned long &file_size);
 
     //读取数据部分
-    int read_data(int start_pos, int next_pos, int tid);
+    int read_data(int tid, std::streampos start_pos, unsigned long read_size);
 
     //计算当前行的测序深度
     int cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar);
@@ -168,7 +166,6 @@ Samtools::Samtools(/* args */)
 
 Samtools::Samtools(Configer &conf) : m_conf(conf)
 {
-    m_filter_read.reserve(conf.get_thread());
     m_threads.reserve(conf.get_thread());
     // m_vec_worker.reserve(conf.get_thread());
 }
@@ -178,7 +175,7 @@ Samtools::~Samtools()
 }
 
 // 读取头文件信息，构建深度统计信息
-int Samtools::read_header(int &start_pos, int &file_size)
+int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
 {
     ifstream inFile(m_conf.get_sam_file());
     if (!inFile)
@@ -210,21 +207,28 @@ int Samtools::read_header(int &start_pos, int &file_size)
             auto sn = cols[1].substr(3);       //得到SN字段
             auto ln = stoi(cols[2].substr(3)); //得到LN字段
             m_depth_result[sn] = vector<int>(ln);
-            m_depth_result_locks[sn] = make_shared<mutex>();
+            m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
         }
     };
 
     inFile.close();
-    spdlog::info("头文件信息读取成功，共有{}条染色体，文件大小为{}", m_depth_result.size(), file_size);
+    spdlog::info("头文件信息读取成功，共有{}条染色体，头部结束位置为{}, 总文件大小为{}", m_depth_result.size(), start_pos, file_size);
     return 0;
 }
 
 //读取文件数据
-int Samtools::read_data(int start_pos, int next_pos, int tid)
+int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_size)
 {
-    spdlog::info("第{}号线程开始读取，start_pos={}，next_pos={}", tid, start_pos, next_pos);
+    spdlog::info("第{}号线程开始读取，start_pos={}, read_size={}", tid, start_pos, read_size);
 
     ifstream inFile(m_conf.get_sam_file());
+    if (!inFile.good())
+    {
+        spdlog::error("第{}号线程打开文件失败，start_pos={}, read_size={}", tid, start_pos, read_size);
+        inFile.close();
+        return -1;
+    }
+
     inFile.seekg(start_pos, ios::beg);
 
     //如果当前位置不在行尾,就跳过一行
@@ -239,16 +243,20 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
             getline(inFile, line);
         }
     }
-    //读取一行并记录到set中
-    bool record_filter = true;
 
-    while (start_pos <= next_pos && getline(inFile, line))
+    std::streampos cur_pos = inFile.tellg();
+    unsigned long read_count = cur_pos - start_pos;
+
+    while (read_count <= read_size && !inFile.eof())
     {
-        start_pos = inFile.tellg(); //记录当前读取到的位置
+        getline(inFile, line);
+        unsigned long cur_line_len = inFile.tellg() - cur_pos; //当前行读的长度
+        read_count += cur_line_len;                            //累计读取长度
+        cur_pos = inFile.tellg();                              //记录当前读取到的位置
 
         auto cols = split(line);
-
-        unsigned int flag = std::stoi(cols[1]);
+        spdlog::info("cols[1]={}", cols[1]);
+        int flag = std::stoi(cols[1]);
 
         // flag值
         // FLAG_BAM_FUNMAP = 1 << 2,
@@ -266,26 +274,22 @@ int Samtools::read_data(int start_pos, int next_pos, int tid)
         string rname = cols[2];                // 染色体名称
         unsigned int pos = std::stoi(cols[3]); // 位点
         string cigar = cols[5];                // cigar值
-
-        // string filter_key = qname + cols[3];
-        // if (m_filter_read.count(filter_key) > 0)
-        // {
-        //     continue;
-        // }
-        // if (record_filter)
-        // {
-        //     m_filter_read.insert(filter_key);
-        //     record_filter = false;
-        // }
+        if (rname != "chrM")
+        {
+            continue;
+        }
         cal_line(qname, flag, rname, pos, cigar);
     }
-    spdlog::info("第{}号线程读取完毕start_pos={}，next_pos={}, tellg={}", tid, start_pos, next_pos, inFile.tellg());
+    spdlog::info("第{}号线程读取完毕start_pos={}, read_size={},读取结束后pos={} ", tid, start_pos, read_size, inFile.tellg());
+    inFile.close();
     return 0;
 }
 
 int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
 {
-    auto &cur_lock = m_depth_result_locks[rname];
+    auto &lock_list = m_depth_result_locks[rname];
+    // auto &cur_lock = lock_list[pos % lock_list.size()];
+    // cur_lock->lock();
     // 根据cigar值来统计深度
     for (auto start = 0, i = 0; i < cigar.size(); i++)
     {
@@ -299,72 +303,74 @@ int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned i
         // 3M1D2M1I1M
         switch (cigar[i])
         {
-        // case 'M': // M 表示比对匹配,进行统计
-        //     while (t--)
-        //     {
-        //         cur_lock->lock();
-        //         m_depth_result[rname][pos++]++;
-        //         cur_lock->unlock();
-        //     }
-        //     break;
+        case 'M': // M 表示比对匹配,进行统计
+            while (t--)
+            {
+                auto &cur_lock = lock_list[pos % lock_list.size()];
+                cur_lock->lock();
+                m_depth_result[rname][pos++]++;
+                cur_lock->unlock();
+            }
+            break;
         // case 'I':
-        //     while (t--)
-        //     {
-        //         cur_lock->lock();
-        //         m_depth_result[rname][pos++]++;
-        //         cur_lock->unlock();
-        //     }
+        //     // while (t--)
+        //     // {
+        //     //     cur_lock->lock();
+        //     //     m_depth_result[rname][pos++]++;
+        //     //     cur_lock->unlock();
+        //     // }
         //     break;
         case 'D':
             pos += t;
         default:
-            cur_lock->lock();
-            m_depth_result[rname][pos++]++;
-            cur_lock->unlock();
+            // while (t--)
+            // {
+            //     cur_lock->lock();
+            //     m_depth_result[rname][pos++]++;
+            //     cur_lock->unlock();
+            // }
             break;
         }
 
         //读取下一个数字
         start = i + 1;
     }
+    // cur_lock->unlock();
+
     return 0;
 }
 
 int Samtools::start_work()
 {
-    spdlog::info("开始统计每条染色体每个位点深度");
-    int start_pos = 0;
-    int file_size = 0;
+    spdlog::info("开始统计每条染色体每个位点深度,读取文件{}", m_conf.get_sam_file());
+    std::streampos start_pos = 0; //需要多线程读的起始位置
+    unsigned long file_size = 0;  //总文件大小
     read_header(start_pos, file_size);
 
-    ifstream inFile(m_conf.get_sam_file());
-    inFile.seekg(start_pos, ios::beg); //直接跳过headr部分
-
-    int thread_num = m_conf.get_thread();
-
-    int once_size = (file_size - start_pos) / thread_num;
-    int next_pos = start_pos;
+    int thread_num = m_conf.get_thread();             //线程数量
+    unsigned long read_size = file_size - start_pos;  //需要多线程读取的部分不包括header
+    unsigned long once_size = read_size / thread_num; //每个线程平均读取的字节数
 
     //开启多线程处理
     int tid = 0;
+
     for (; tid < thread_num; tid++)
     {
-        next_pos += once_size;
-        std::thread th(&Samtools::read_data, this, start_pos, next_pos, tid);
+        std::thread th(&Samtools::read_data, this, tid, start_pos, once_size);
         m_threads.emplace_back(std::move(th));
-        start_pos = next_pos;
+        start_pos += once_size;
     }
-
     //启动线程
     for (auto &th : m_threads)
     {
         th.join();
     }
-
     //主线程读取剩下的部分
-    if ((file_size - start_pos) % thread_num != 0)
+    if (read_size % thread_num != 0)
     {
-        read_data(start_pos, next_pos, tid);
+        long left_size = file_size - start_pos;
+        spdlog::info("剩下的部分{}全部由主线程来读取,file_size={},start_pos={}", left_size, file_size, start_pos);
+        read_data(tid, start_pos, left_size);
     }
 
     static_result();
@@ -389,6 +395,10 @@ int Samtools::static_result()
         auto rname = info.first;       //染色体
         auto depth_info = info.second; //深度
         auto count = depth_info.size();
+        if (rname != "chrM")
+        {
+            continue;
+        }
         for (unsigned int pos = 0; pos < count; pos++)
         {
             out << rname << "\t" << pos << "\t" << depth_info[pos] << endl;

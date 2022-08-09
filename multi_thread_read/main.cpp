@@ -23,7 +23,7 @@ void init_log()
     }
 }
 
-void thread_read_file(int tid, const string &file_path, std::streampos start_pos, std::streampos next_pos, int each_size)
+void thread_read_file(int tid, const string &file_path, std::streampos start_pos, int each_size)
 {
     ifstream file(file_path.c_str(), ios::in);
     if (!file.good())
@@ -57,8 +57,8 @@ void thread_read_file(int tid, const string &file_path, std::streampos start_pos
         getline(file, text);
         int cur_line_len = file.tellg() - cur_pos;
         read_count += cur_line_len;
-        spdlog::info("线程{} start_pos={},next_pos={},each_size={},本行开始pos={},本行结束pos={},本行读长={},text={}",
-                     tid, start_pos, next_pos, each_size, cur_pos, file.tellg(), cur_line_len, text);
+        spdlog::info("线程{} start_pos={},each_size={},本行开始pos={},本行结束pos={},本行读长={},text={}",
+                     tid, start_pos, each_size, cur_pos, file.tellg(), cur_line_len, text);
         cur_pos = file.tellg();
     }
     // spdlog::info("线程{} start_pos={},next_pos={},each_size={},结束时cur_pos={},总共区间长度为{}\n", tid, start_pos, next_pos, each_size, cur_pos, cur_pos - start_pos);
@@ -84,26 +84,25 @@ void test_join(const string &file_path)
     int file_size = file.seekg(0, ios::end).tellg();
     file.close();
 
-    int thread_nums = 1;                     //线程个数
+    int thread_nums = 210;                    //线程个数
     int each_size = file_size / thread_nums; //平均每个线程读取的字节数
     assert(each_size > 0);
-    std::streampos start_pos = 0, next_pos = 0; //每个线程读取位置的起始和下一个线程读取的起始位置
-    vector<std::thread> vec_threads;            //线程列表
+    std::streampos start_pos = 0;    //每个线程读取的起始位置
+    vector<std::thread> vec_threads; //线程列表
     spdlog::info("thread_nums={},each_size={},file_size={}", thread_nums, each_size, file_size);
     int t_id = 0; //线程id
     for (; t_id < thread_nums; ++t_id)
     {
-        next_pos += each_size;
-        std::thread th(thread_read_file, t_id, file_path, start_pos, next_pos, each_size);
+        std::thread th(thread_read_file, t_id, file_path, start_pos, each_size);
         vec_threads.emplace_back(std::move(th)); // push_back() is also OK
-        start_pos = next_pos;
+        start_pos += each_size;
     }
 
     if (file_size % thread_nums != 0)
     {
         int left_size = file_size - start_pos;
         spdlog::info("剩下的部分{}全部由主线程来读取", left_size);
-        thread_read_file(t_id, file_path, start_pos, file_size, left_size);
+        thread_read_file(t_id, file_path, start_pos, left_size);
     }
 
     for (auto &it : vec_threads)
@@ -114,7 +113,7 @@ void test_join(const string &file_path)
 int main()
 {
     init_log();
-    string file_path = "./1.txt";
+    string file_path = "/data/lush-dev/liwei/homework1/2.sam";
     // test_detach(file_path);
     // std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for detached threads done
     test_join(file_path);
