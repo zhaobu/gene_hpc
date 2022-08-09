@@ -40,8 +40,7 @@ Configer::~Configer()
 {
 }
 
-Configer::Configer(const string &conf_file)
-{
+Configer::Configer(const string &conf_file){
     // YAML::Node config = YAML::LoadFile(conf_file);
     // std::cout << "config:" << config.as<std::string>() << endl;
     // if (!config["sam_file"])

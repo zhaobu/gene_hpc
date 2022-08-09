@@ -66,6 +66,7 @@
         "variant": "cpp",
         "any": "cpp",
         "charconv": "cpp",
-        "forward_list": "cpp"
+        "forward_list": "cpp",
+        "complex": "cpp"
     }
 }
