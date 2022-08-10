@@ -263,7 +263,10 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         read_count += cur_line_len;                            //累计读取长度
         cur_pos = inFile.tellg();                              //记录当前读取到的位置
 
-        auto cols = split(line);
+        vector<string> cols;
+        cols.reserve(18);
+        split(line, cols, '\t');
+
         string &rname = cols[2]; // 染色体名称
         if (rname != m_conf.get_target_rname())
         {

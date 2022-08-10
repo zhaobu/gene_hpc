@@ -112,10 +112,10 @@ void test_join(const string &file_path)
 }
 int main()
 {
-    init_log();
+    // init_log();
     string file_path = "/data/lush-dev/liwei/homework1/2.sam";
     file_path = "1.txt";
-    file_path = "work2.sam";
+    // file_path = "work2.sam";
     // test_detach(file_path);
     // std::this_thread::sleep_for(std::chrono::seconds(1)); // wait for detached threads done
     test_join(file_path);
