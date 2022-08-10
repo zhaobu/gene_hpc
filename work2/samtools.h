@@ -2,12 +2,13 @@
 #define SAMTOOLS
 
 #include "spdlog/spdlog.h"
+#include <atomic>
 #include <config.h>
 #include <fstream>
 #include <iostream>
 #include <iterator>
 // #include <map>
-// #include <memory>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -16,7 +17,7 @@
 #include <utils.h>
 #include <vector>
 // #include <worker.h>
-#include <mutex>
+// #include <mutex>
 
 using namespace std;
 
@@ -30,8 +31,8 @@ enum FLAG
 
 const int KCH_TOTAL_NUM = 94; //染色体总条数
 
-using DepthInfo = unordered_map<string, vector<int>>;
-using DepthInfoLock = unordered_map<string, vector<shared_ptr<mutex>>>;
+using DepthInfo = unordered_map<string, vector<atomic<long>>>;
+// using DepthInfoLock = unordered_map<string, vector<shared_ptr<mutex>>>;
 // using VecWorker = vector<std::shared_ptr<Worker>>;
 using VecThread = vector<std::thread>;
 
@@ -136,7 +137,7 @@ private:
     // VecWorker m_vec_worker;
     DepthInfo m_depth_result;
     VecThread m_threads;
-    DepthInfoLock m_depth_result_locks; //同步锁
+    // DepthInfoLock m_depth_result_locks; //同步锁
 
 public:
     Samtools();
@@ -210,8 +211,8 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
             {
                 continue;
             }
-            m_depth_result[sn] = vector<int>(ln);
-            m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
+            m_depth_result[sn] = vector<atomic<long>>(ln);
+            // m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
         }
     };
 
@@ -294,7 +295,7 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
 
 int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
 {
-    auto &lock_list = m_depth_result_locks[rname];
+    // auto &lock_list = m_depth_result_locks[rname];
     // auto &cur_lock = lock_list[pos % lock_list.size()];
     // cur_lock->lock();
     // 根据cigar值来统计深度
@@ -313,10 +314,10 @@ int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned i
         case 'M': // M 表示比对匹配,进行统计
             while (t--)
             {
-                auto &cur_lock = lock_list[pos % lock_list.size()];
-                cur_lock->lock();
+                // auto &cur_lock = lock_list[pos % lock_list.size()];
+                // cur_lock->lock();
                 m_depth_result[rname][pos++]++;
-                cur_lock->unlock();
+                // cur_lock->unlock();
             }
             break;
         // case 'I':
@@ -397,10 +398,10 @@ int Samtools::static_result()
         return 0;
     }
 
-    for (auto &info : m_depth_result)
+    for (const auto &info : m_depth_result)
     {
-        auto rname = info.first;       //染色体
-        auto depth_info = info.second; //深度
+        auto rname = info.first;        //染色体
+        auto &depth_info = info.second; //深度
         auto count = depth_info.size();
         if (rname != m_conf.get_target_rname())
         {

@@ -67,6 +67,7 @@
         "any": "cpp",
         "charconv": "cpp",
         "forward_list": "cpp",
-        "complex": "cpp"
+        "complex": "cpp",
+        "valarray": "cpp"
     }
 }

@@ -1,6 +1,8 @@
 #ifndef CONFIG
 #define CONFIG
 // #include "yaml-cpp/yaml.h"
+#include "spdlog/spdlog.h"
+
 #include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
@@ -58,7 +60,7 @@ Configer::Configer(const string &conf_file)
     {
         std::ifstream file(conf_file);
         json conf_data = json::parse(file);
-        spdlog::info("config:{}", conf_data.dump());
+        spdlog::info("读取到的配置文件为 config:{}", conf_data.dump(2));
 
         if (conf_data["sam_file"].empty())
         {

@@ -39,7 +39,7 @@
             "program": "${fileDirname}/main.out",
             /*args: 命令行参数（main函数的形参） */
             "args": [
-                "conf.yml"
+                "conf.json"
                 // "/data/lush-dev/liwei/homework1/2.sam",
                 // "210"
             ],

@@ -1,6 +1,6 @@
 {
-    "sam_file": "data/work2.sam",
-    "thread": 1,
+    "sam_file": "/data/lush-dev/liwei/homework1/2.sam",
+    "thread": 210,
     "result_file": "data/result.log",
     "target_rname": "chr22"
 }
