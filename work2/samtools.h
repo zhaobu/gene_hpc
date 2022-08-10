@@ -156,7 +156,7 @@ public:
     int read_data(int tid, std::streampos start_pos, unsigned long read_size);
 
     //计算当前行的测序深度
-    int cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar);
+    int cal_line(const string &rname, unsigned int pos, const string &cigar);
 
     int static_result();
 };
@@ -264,8 +264,13 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         cur_pos = inFile.tellg();                              //记录当前读取到的位置
 
         auto cols = split(line);
-        int flag = std::stoi(cols[1]);
+        string &rname = cols[2]; // 染色体名称
+        if (rname != m_conf.get_target_rname())
+        {
+            continue;
+        }
 
+        int flag = std::stoi(cols[1]);
         // flag值
         // FLAG_BAM_FUNMAP = 1 << 2,
         // FLAG_AM_FSECONDARY = 1 << 8,
@@ -278,22 +283,18 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
             continue;
         }
 
-        string qname = cols[0];                // qname
-        string rname = cols[2];                // 染色体名称
+        // string qname = cols[0];                // qname
         unsigned int pos = std::stoi(cols[3]); // 位点
-        string cigar = cols[5];                // cigar值
-        if (rname != m_conf.get_target_rname())
-        {
-            continue;
-        }
-        cal_line(qname, flag, rname, pos, cigar);
+        string &cigar = cols[5];               // cigar值
+
+        cal_line(rname, pos, cigar);
     }
     spdlog::info("第{}号线程读取完毕start_pos={}, read_size={},读取结束后pos={} ", tid, start_pos, read_size, inFile.tellg());
     inFile.close();
     return 0;
 }
 
-int Samtools::cal_line(string qname, unsigned int flag, string rname, unsigned int pos, string cigar)
+int Samtools::cal_line(const string &rname, unsigned int pos, const string &cigar)
 {
     // auto &lock_list = m_depth_result_locks[rname];
     // auto &cur_lock = lock_list[pos % lock_list.size()];
@@ -409,7 +410,10 @@ int Samtools::static_result()
         }
         for (unsigned int pos = 0; pos < count; pos++)
         {
-            out << rname << "\t" << pos << "\t" << depth_info[pos] << endl;
+            if (depth_info[pos] > 0)
+            {
+                out << rname << "\t" << pos << "\t" << depth_info[pos] << endl;
+            }
         }
     }
     spdlog::info("结果已经保存到{}", m_conf.get_result_file());

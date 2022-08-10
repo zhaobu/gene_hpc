@@ -15,6 +15,7 @@
                 "-pthread",
                 "-xc++",
                 "${fileDirname}/*.cpp",
+                "-std=c++2a",
                 "-o",
                 "${fileDirname}/main.out"
             ], //编译参数

@@ -5,6 +5,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
+#include "utils.h"
 #include <iostream>
 #include <memory>
 
@@ -17,15 +18,17 @@ void init_log()
     {
         /* 通过multi-sink的方式创建复合logger，实现方式为：先分别创建文件sink和控制台sink，并将两者放入sink 向量中，组成一个复合logger */
         /* file sink */
-        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("test.log", true);
+        string log_file = str_format("logs/%s.log", get_current_time("%Y-%m-%d_%H:%M:%S").c_str());
+        string log_format = "[%Y-%m-%d %H:%M:%S %z][%l][%g:%#] [thread %t] %v";
+        auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_file, true);
         file_sink->set_level(spdlog::level::trace);
-        file_sink->set_pattern("[%Y-%m-%d %T][%l]%v");
+        file_sink->set_pattern(log_format);
         std::cout << "MultiLogger: create file sink OK." << std::endl;
 
         /* 控制台sink */
         auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         console_sink->set_level(spdlog::level::trace);
-        console_sink->set_pattern("%+");
+        console_sink->set_pattern(log_format);
         std::cout << "MultiLogger: create console sink OK." << std::endl;
 
         /* Sink组合 */
