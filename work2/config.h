@@ -1,9 +1,12 @@
 #ifndef CONFIG
 #define CONFIG
 // #include "yaml-cpp/yaml.h"
+#include "nlohmann/json.hpp"
 #include <fstream>
 #include <iostream>
 #include <string>
+
+using json = nlohmann::json;
 using namespace std;
 
 class Configer
@@ -49,32 +52,43 @@ Configer::~Configer()
 {
 }
 
-Configer::Configer(const string &conf_file){
-    // YAML::Node config = YAML::LoadFile(conf_file);
-    // std::cout << "config:" << config.as<std::string>() << endl;
-    // if (!config["sam_file"])
-    // {
-    //     std::cout << "sam_file未配置" << endl;
-    //     return;
-    // }
+Configer::Configer(const string &conf_file)
+{
+    try
+    {
+        std::ifstream file(conf_file);
+        json conf_data = json::parse(file);
+        spdlog::info("config:{}", conf_data.dump());
 
-    // if (!config["thread"])
-    // {
-    //     std::cout << "thread 未配置" << endl;
-    //     return;
-    // }
+        if (conf_data["sam_file"].empty())
+        {
+            spdlog::error("sam_file未配置");
+            return;
+        }
 
-    // if (!config["result_file"])
-    // {
-    //     std::cout << "result_file 未配置" << endl;
-    //     return;
-    // }
-    // m_sam_file = config["sam_file"].as<string>();
-    // m_thread = config["thread"].as<int>();
-    // m_result_file = config["result_file"].as<string>();
+        if (conf_data["thread"].empty())
+        {
+            spdlog::error("thread 未配置");
+            return;
+        }
 
-    // std::ofstream fout("config.yaml");
-    // fout << config;
+        if (conf_data["result_file"].empty())
+        {
+            spdlog::error("result_file 未配置");
+            return;
+        }
+        m_sam_file = conf_data["sam_file"].get<string>();
+        m_thread = conf_data["thread"].get<int>();
+        m_result_file = conf_data["result_file"].get<string>();
+
+        // std::ofstream fout("config.yaml");
+        // fout << config;
+    }
+    catch (const std::exception &e)
+    {
+        spdlog::error("读取配置文件{}错误:{}", conf_file, e.what());
+        return;
+    };
 };
 
 #endif
