@@ -74,7 +74,7 @@
             preLaunchTask: 这个表示 执行调试前 要完成的任务
             该值需要与tasks.json中的label相同，否则调试时会提示找不到；
              */
-            "preLaunchTask": "g++ build active file"
+            // "preLaunchTask": "g++ build active file"
         }
     ]
 }
