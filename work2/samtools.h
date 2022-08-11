@@ -20,6 +20,7 @@
 // #include <mutex>
 
 using namespace std;
+#define CAL_ONE ;
 
 enum FLAG
 {
@@ -214,11 +215,13 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
         {
             auto sn = cols[1].substr(3);       //得到SN字段
             auto ln = stoi(cols[2].substr(3)); //得到LN字段
+#ifdef CAL_ONE
             if (sn != m_conf.get_target_rname())
             {
                 last_line_pos = inFile.tellg();
                 continue;
             }
+#endif
             m_depth_result[sn] = vector<atomic<long>>(ln);
             // m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
         }
@@ -276,11 +279,12 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         split(line, cols, '\t');
 
         string &rname = cols[2]; // 染色体名称
+#ifdef CAL_ONE
         if (rname != m_conf.get_target_rname())
         {
             continue;
         }
-
+#endif
         int flag = std::stoi(cols[1]);
         // flag值
         // FLAG_BAM_FUNMAP = 1 << 2,
@@ -401,10 +405,12 @@ int Samtools::static_result()
         auto rname = info.first;        //染色体
         auto &depth_info = info.second; //深度
         auto count = depth_info.size();
+#ifdef CAL_ONE
         if (rname != m_conf.get_target_rname())
         {
             continue;
         }
+#endif
         for (unsigned int pos = 0; pos < count; pos++)
         {
             if (depth_info[pos] > 0)

@@ -20,36 +20,72 @@ using namespace std;
 //     return move(vector<string>(sregex_token_iterator(text.begin(), text.end(), ws_re, -1), sregex_token_iterator()));
 // }
 
+// void split(const string &s, vector<string> &tokens, char delim = ' ')
+// {
+//     tokens.clear();
+//     auto string_find_first_not = [&s, delim](size_t pos = 0) -> size_t
+//     {
+//         for (size_t i = pos; i < s.size(); i++)
+//         {
+//             if (s[i] != delim)
+//                 return i;
+//         }
+//         return string::npos;
+//     };
+//     size_t lastPos = string_find_first_not(0);
+//     size_t pos = s.find(delim, lastPos);
+//     while (lastPos != string::npos)
+//     {
+//         tokens.emplace_back(s.substr(lastPos, pos - lastPos));
+//         lastPos = string_find_first_not(pos);
+//         pos = s.find(delim, lastPos);
+//     }
+// }
+
+//最简单效率最高写法
 void split(const string &s, vector<string> &tokens, char delim = ' ')
 {
     tokens.clear();
-    auto find_first_not_of = [&s, delim](size_t pos = 0) -> size_t
-    {
-        while (pos < s.size() && s[pos] == delim)
-        {
-            pos++;
-        }
-        return pos < s.size() ? pos : string::npos;
-    };
-
-    auto find_first_of = [&s, delim](size_t pos = 0) -> size_t
-    {
-        while (pos < s.size() && s[pos] != delim)
-        {
-            pos++;
-        }
-        return pos < s.size() ? pos : string::npos;
-    };
-
-    size_t lastPos = find_first_not_of(0);
-    size_t pos = find_first_of(lastPos);
+    size_t lastPos = s.find_first_not_of(delim, 0);
+    size_t pos = s.find(delim, lastPos);
     while (lastPos != string::npos)
     {
         tokens.emplace_back(s.substr(lastPos, pos - lastPos));
-        lastPos = find_first_not_of(pos);
-        pos = find_first_of(lastPos);
+        lastPos = s.find_first_not_of(delim, pos);
+        pos = s.find(delim, lastPos);
     }
 }
+
+// void split(const string &s, vector<string> &tokens, char delim = ' ')
+// {
+//     tokens.clear();
+//     auto find_first_not_of = [&s, delim](size_t pos = 0) -> size_t
+//     {
+//         while (pos < s.size() && s[pos] == delim)
+//         {
+//             pos++;
+//         }
+//         return pos < s.size() ? pos : string::npos;
+//     };
+
+//     auto find_first_of = [&s, delim](size_t pos = 0) -> size_t
+//     {
+//         while (pos < s.size() && s[pos] != delim)
+//         {
+//             pos++;
+//         }
+//         return pos < s.size() ? pos : string::npos;
+//     };
+
+//     size_t lastPos = find_first_not_of(0);
+//     size_t pos = find_first_of(lastPos);
+//     while (lastPos != string::npos)
+//     {
+//         tokens.emplace_back(s.substr(lastPos, pos - lastPos));
+//         lastPos = find_first_not_of(pos);
+//         pos = find_first_of(lastPos);
+//     }
+// }
 // vector<string> split(const string &str, const string &delims = " ")
 // {
 //     vector<string> output;
