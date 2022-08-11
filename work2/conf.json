@@ -1,6 +1,6 @@
 {
     "sam_file": "/data/lush-dev/liwei/homework1/2.sam",
     "thread": 250,
-    "result_file": "data/chrM.depth.log",
-    "target_rname": "chrM"
+    "result_file": "data/chr15.depth.log",
+    "target_rname": "chr15"
 }

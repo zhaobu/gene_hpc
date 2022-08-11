@@ -79,9 +79,15 @@ Configer::Configer(const string &conf_file)
             spdlog::error("result_file 未配置");
             return;
         }
+        if (conf_data["target_rname"].empty())
+        {
+            spdlog::error("target_rname 未配置");
+            return;
+        }
         m_sam_file = conf_data["sam_file"].get<string>();
         m_thread = conf_data["thread"].get<int>();
         m_result_file = conf_data["result_file"].get<string>();
+        m_target_rname = conf_data["target_rname"].get<string>();
 
         // std::ofstream fout("config.yaml");
         // fout << config;

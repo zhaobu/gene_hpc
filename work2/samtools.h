@@ -191,17 +191,21 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
 
     string text;
     start_pos = 0;
+    vector<string> cols(3);
+    // cols.reserve(3);
+    streampos last_line_pos = 0; //记录上一行的位置
     while (getline(inFile, text))
     {
-        auto cols = split(text);
+        split(text, cols, '\t');
 
         // 读取到非头文件内容就停止读取
         if (cols[0][0] != '@')
         {
             //记录读取的位置
-            start_pos = inFile.tellg();
+            start_pos = last_line_pos;
             break;
         }
+
         // 头部其他字段，跳过
         if (cols[0].compare("@SQ") == 0)
         {
@@ -209,11 +213,13 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
             auto ln = stoi(cols[2].substr(3)); //得到LN字段
             if (sn != m_conf.get_target_rname())
             {
+                last_line_pos = inFile.tellg();
                 continue;
             }
             m_depth_result[sn] = vector<atomic<long>>(ln);
             // m_depth_result_locks[sn] = vector<shared_ptr<mutex>>(ln / 10, make_shared<mutex>());
         }
+        last_line_pos = inFile.tellg();
     };
 
     inFile.close();
@@ -251,7 +257,8 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
 
     std::streampos cur_pos = inFile.tellg();
     unsigned long read_count = cur_pos - start_pos;
-
+    vector<string> cols(18);
+    // cols.reserve(18);
     while (read_count <= read_size && !inFile.eof())
     {
         getline(inFile, line);
@@ -263,8 +270,6 @@ int Samtools::read_data(int tid, std::streampos start_pos, unsigned long read_si
         read_count += cur_line_len;                            //累计读取长度
         cur_pos = inFile.tellg();                              //记录当前读取到的位置
 
-        vector<string> cols;
-        cols.reserve(18);
         split(line, cols, '\t');
 
         string &rname = cols[2]; // 染色体名称
@@ -324,23 +329,9 @@ int Samtools::cal_line(const string &rname, unsigned int pos, const string &ciga
                 // cur_lock->unlock();
             }
             break;
-        // case 'I':
-        //     // while (t--)
-        //     // {
-        //     //     cur_lock->lock();
-        //     //     m_depth_result[rname][pos++]++;
-        //     //     cur_lock->unlock();
-        //     // }
-        //     break;
         case 'D':
             pos += t;
         default:
-            // while (t--)
-            // {
-            //     cur_lock->lock();
-            //     m_depth_result[rname][pos++]++;
-            //     cur_lock->unlock();
-            // }
             break;
         }
 
