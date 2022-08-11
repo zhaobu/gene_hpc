@@ -201,8 +201,11 @@ int Samtools::read_header(std::streampos &start_pos, unsigned long &file_size)
         // 读取到非头文件内容就停止读取
         if (cols[0][0] != '@')
         {
-            //记录读取的位置
-            start_pos = last_line_pos;
+            /*
+            1. 记录读取的位置时,已经读取了一行数据部分,所以数据部分起始点应该是上一行的结束位置
+            2. read_dat实现是如果是在行中间,就跳过该行,所以应该用last_line_pos-1表示指针移动到上一行的换行符
+             */
+            start_pos = last_line_pos - 1;
             break;
         }
 
