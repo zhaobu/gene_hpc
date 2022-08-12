@@ -11,13 +11,17 @@
                 "-I",
                 "${workspaceFolder}/libs/include",
                 "-g",
-                // "-O3",
+                "-O3",
                 "-pthread",
                 "-xc++",
                 "${fileDirname}/*.cpp",
                 "-std=c++2a",
                 "-o",
-                "${fileDirname}/main.out"
+                "${fileDirname}/main.out",
+                // "-fsanitize=address", //内存错误操作
+                // "-fsanitize=thread", //多线程竞争
+                // "-fsanitize=leak" //内存泄漏
+                // "-fno-omit-frame-pointer" //用-fno-omit-frame-pointer编译，以得到更容易理解stack trace
             ], //编译参数
             "options": {
                 "cwd": "${fileDirname}"
