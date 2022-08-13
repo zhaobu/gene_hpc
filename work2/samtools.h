@@ -315,7 +315,7 @@ int Samtools::cal_line(const string &rname, unsigned int pos, const string &ciga
     // auto &cur_lock = lock_list[pos % lock_list.size()];
     // cur_lock->lock();
     // 根据cigar值来统计深度
-    for (auto start = 0, i = 0; i < cigar.size(); i++)
+    for (std::size_t start = 0, i = 0; i < cigar.size(); i++)
     {
         if (isdigit(cigar[i]))
         {

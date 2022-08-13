@@ -11,6 +11,7 @@
                 "-I",
                 "${workspaceFolder}/libs/include",
                 "-g",
+                "-Wall",
                 "-O3",
                 "-pthread",
                 "-xc++",
