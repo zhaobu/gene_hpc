@@ -1,5 +1,4 @@
-#ifndef SAMTOOLS
-#define SAMTOOLS
+#pragma once
 
 #include "spdlog/spdlog.h"
 #include <atomic>
@@ -423,5 +422,3 @@ int Samtools::static_result()
     out.close();
     return 0;
 }
-
-#endif

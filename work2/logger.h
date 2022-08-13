@@ -1,5 +1,5 @@
-#ifndef LOGGER
-#define LOGGER
+#pragma once
+
 #define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_TRACE //必须定义这个宏,才能输出文件名和行号
 
 #include "spdlog/sinks/basic_file_sink.h"
@@ -47,5 +47,3 @@ void init_log()
         exit(EXIT_FAILURE);
     }
 }
-
-#endif

@@ -1,6 +1,6 @@
 
-#ifndef UTILS
-#define UTILS
+#pragma once
+
 #include <iostream>
 #include <iterator>
 #include <regex>
@@ -163,5 +163,3 @@ string get_current_time(const string &str = "%Y-%m-%d %H:%M:%S")
     ss << std::put_time(localtime(&t), str.c_str());
     return ss.str();
 }
-
-#endif

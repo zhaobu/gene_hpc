@@ -1,5 +1,4 @@
-#ifndef CONFIG
-#define CONFIG
+#pragma once
 // #include "yaml-cpp/yaml.h"
 #include "spdlog/spdlog.h"
 
@@ -98,5 +97,3 @@ Configer::Configer(const string &conf_file)
         return;
     };
 };
-
-#endif

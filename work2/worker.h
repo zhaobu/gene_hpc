@@ -1,5 +1,4 @@
-#ifndef WORKER
-#define WORKER
+#pragma once
 
 #include <config.h>
 #include <fstream>
@@ -36,5 +35,3 @@ int Worker::start_caldepth()
 {
     return 0;
 }
-
-#endif
